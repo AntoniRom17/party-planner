@@ -18,10 +18,9 @@ main {
   display: flex;
   gap: 2rem;
   padding: 2rem;
-  max-width: 75rem; 
+  max-width: 75rem;
   margin: auto;
 }
-
 
 section {
   flex: 1;
@@ -35,7 +34,7 @@ section {
 
 .lineup li {
   background: white;
-  border: 0.125rem solid #2c3e50; /* 2px */
+  border: 0.125rem solid #2c3e50;
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -48,13 +47,17 @@ section {
   color: white;
 }
 
+.lineup li.selected {
+  background: #1abc9c;
+  color: white;
+  border-color: #16a085;
+}
 
 .lineup li a {
   text-decoration: none;
   color: inherit;
   font-weight: bold;
 }
-
 
 #selected {
   flex: 2;
@@ -80,4 +83,3 @@ section {
   padding: 1rem;
   border-radius: 0.5rem;
   border: 0.125rem dashed #2c3e50;
-}

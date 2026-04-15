@@ -1,24 +1,17 @@
-/**
- * @typedef Event
- * @property {number} id
- * @property {string} name
- * @property {string} description
- * @property {string} date
- * @property {string} location
- */
-
 const BASE = "https://fsa-crud-2aa9294fe819.herokuapp.com/api";
 const COHORT = "/2602-FTB-CT-WEB-PT";
-const RESOURCE = "/events";
-const API = BASE + COHORT + RESOURCE;
+const EVENTS_API = BASE + COHORT + "/events";
+const GUESTS_API = BASE + COHORT + "/guests";
+const RSVPS_API = BASE + COHORT + "/rsvps";
 
 let events = [];
 let selectedEvent;
-
+let guests = [];
+let rsvps = [];
 
 async function getEvents() {
   try {
-    const response = await fetch(API);
+    const response = await fetch(EVENTS_API);
     const result = await response.json();
     events = result.data;
   } catch (e) {
@@ -26,10 +19,9 @@ async function getEvents() {
   }
 }
 
-
 async function getEvent(id) {
   try {
-    const response = await fetch(`${API}/${id}`);
+    const response = await fetch(`${EVENTS_API}/${id}`);
     const result = await response.json();
     selectedEvent = result.data;
     render();
@@ -38,51 +30,86 @@ async function getEvent(id) {
   }
 }
 
+async function getGuests() {
+  try {
+    const response = await fetch(GUESTS_API);
+    const result = await response.json();
+    guests = result.data;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getRsvps() {
+  try {
+    const response = await fetch(RSVPS_API);
+    const result = await response.json();
+    rsvps = result.data;
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 function EventListItem(event) {
-  const $li = document.createElement("li");
-  $li.innerHTML = `
+  const li = document.createElement("li");
+
+  if (selectedEvent && selectedEvent.id === event.id) {
+    li.classList.add("selected");
+  }
+
+  li.innerHTML = `
     <a href="#selected">${event.name}</a>
   `;
-  $li.addEventListener("click", () => getEvent(event.id));
-  return $li;
-}
 
+  li.addEventListener("click", () => getEvent(event.id));
+
+  return li;
+}
 
 function EventList() {
-  const $ul = document.createElement("ul");
-  $ul.classList.add("lineup");
-
-  const $items = events.map(EventListItem);
-  $ul.replaceChildren(...$items);
-
-  return $ul;
+  const ul = document.createElement("ul");
+  ul.classList.add("lineup");
+  const items = events.map(EventListItem);
+  ul.replaceChildren(...items);
+  return ul;
 }
-
 
 function EventDetails() {
   if (!selectedEvent) {
-    const $p = document.createElement("p");
-    $p.textContent = "Please select an event to learn more.";
-    return $p;
+    const p = document.createElement("p");
+    p.textContent = "Please select an event to learn more.";
+    return p;
   }
 
-  const $section = document.createElement("section");
-  $section.classList.add("event");
+  const section = document.createElement("section");
+  section.classList.add("event");
 
-  $section.innerHTML = `
+  const eventRsvps = rsvps.filter(r => r.eventId === selectedEvent.id);
+  const attendingGuests = guests.filter(g =>
+    eventRsvps.some(r => r.guestId === g.id)
+  );
+
+  let guestList = "<ul>";
+  attendingGuests.forEach(g => {
+    guestList += `<li>${g.name}</li>`;
+  });
+  guestList += "</ul>";
+
+  section.innerHTML = `
     <h3>${selectedEvent.name} #${selectedEvent.id}</h3>
     <p><strong>Date:</strong> ${selectedEvent.date}</p>
     <p><strong>Location:</strong> ${selectedEvent.location}</p>
     <p>${selectedEvent.description}</p>
+    <h4>Guests Attending:</h4>
+    ${attendingGuests.length ? guestList : "<p>No RSVPs yet.</p>"}
   `;
 
-  return $section;
+  return section;
 }
 
 function render() {
-  const $app = document.querySelector("#app");
-  $app.innerHTML = `
+  const app = document.querySelector("#app");
+  app.innerHTML = `
     <h1>Fullstack Convention Center</h1>
     <main>
       <section>
@@ -96,12 +123,14 @@ function render() {
     </main>
   `;
 
-  $app.querySelector("EventList").replaceWith(EventList());
-  $app.querySelector("EventDetails").replaceWith(EventDetails());
+  app.querySelector("EventList").replaceWith(EventList());
+  app.querySelector("EventDetails").replaceWith(EventDetails());
 }
 
 async function init() {
   await getEvents();
+  await getGuests();
+  await getRsvps();
   render();
 }
 
